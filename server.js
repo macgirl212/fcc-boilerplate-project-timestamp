@@ -18,17 +18,35 @@ app.get("/", function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
+// empty date param endpoint
+app.get("/api/", (req, res) => {
+  const unix = Date.now()
+  const utcString = new Date(unix).toUTCString()
+  return res.status(200).json({unix: unix, utc: utcString})
+})
+
 
 // your first API endpoint... 
-app.get("/api/:date", function (req, res) {
+app.get("/api/:date", (req, res) => {
+  // if param is unix number
+  if (Math.floor(req.params.date) > 0) {
+    const unix = Math.floor(req.params.date)
+    const utcString = new Date(unix).toUTCString()
+    return res.status(200).json({unix: unix, utc: utcString});
+  }
+  // if param is not a date
+  if (isNaN(Date.parse(req.params.date))) {
+    return res.status(400).json({error: "Invalid date"})
+  }
+  // if param is a date
   const query = new Date(req.params.date)
-  if (query instanceof Date) {
-    console.log("valid date");
+  if (query instanceof Date && !NaN) {
     const unix = Math.floor(query.getTime())
     const utcString = query.toUTCString()
-    console.log(req.params);
-    res.status(200).json({unix: unix, utc: utcString});
+    return res.status(200).json({unix: unix, utc: utcString});
   }
+  // any other errors
+  return res.status(400).json({error: "Invalid date"})
 });
 
 const port = process.env.PORT || 3000
